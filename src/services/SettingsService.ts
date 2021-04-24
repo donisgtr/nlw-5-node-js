@@ -1,35 +1,39 @@
-import { getCustomRepository } from "typeorm";
+import { getCustomRepository, Repository } from "typeorm";
+import { Setting } from "../entities/Setting";
 import { SettingsRepository } from "../repositories/SettingsRepository";
 
-
 interface ISettingsCreate {
-    chat: boolean;
-    username: string;
+  chat: boolean;
+  username: string;
 }
 
 // porque estou criando isso? separara a responsabilidade do controller
 
 class SettingsService {
-        async create({chat, username} : ISettingsCreate) {
-        const settingsRepository = getCustomRepository(SettingsRepository);
+  private settingsRepository: Repository<Setting>;
 
-        //findOne = seria algo do tipo Seletec * from where username = "username" limit 1;
-        const userAlreadyExists = await settingsRepository.findOne({
-            username
-        });
+  constructor() {
+      this.settingsRepository = getCustomRepository(SettingsRepository);
+  }
+  async create({ chat, username }: ISettingsCreate) {
 
-        if(userAlreadyExists) {
-            throw new Error("User Already exists!");
-        }
-    
-        const settings = settingsRepository.create({
-            chat, 
-            username
-        })
-        await settingsRepository.save(settings);
+    //findOne = seria algo do tipo Seletec * from where username = "username" limit 1;
+    const userAlreadyExists = await this.settingsRepository.findOne({
+      username,
+    });
 
-        return settings
+    if (userAlreadyExists) {
+      throw new Error("User Already exists!");
     }
+
+    const settings = this.settingsRepository.create({
+      chat,
+      username,
+    });
+    await this.settingsRepository.save(settings);
+
+    return settings;
+  }
 }
 
-export { SettingsService } 
+export { SettingsService };
