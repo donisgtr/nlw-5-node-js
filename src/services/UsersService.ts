@@ -3,33 +3,36 @@ import { User } from "../entities/User";
 import { UsersRepository } from "../repositories/UsersRepository";
 
 class UserService {
+  private usersRepository: Repository<User>;
 
-    private usersRepository: Repository<User>;
+  constructor() {
+    this.usersRepository = getCustomRepository(UsersRepository);
+  }
 
-    constructor() {
-        this.usersRepository = getCustomRepository(UsersRepository);
+  async create(email: string) {
+    // verificar se o usuario exite.
+    const userExists = await this.usersRepository.findOne({
+      email,
+    });
+
+    // se não existir salvar no banco de dados.
+    if (userExists) {
+      return userExists;
     }
 
-    async create(email: string) {
+    const user = this.usersRepository.create({ email });
 
-        // verificar se o usuario exite.
-        const userExists = await this.usersRepository.findOne({ 
-            email        
-        })
-        
-         // se não existir salvar no banco de dados.
-        if(userExists) {
-            return userExists;
-        }   
+    await this.usersRepository.save(user);
 
-        const user = this.usersRepository.create({ email, });
+    // se existir so retornar o user.
+    return user;
+  }
 
-        await this.usersRepository.save(user);
+  async findByEmail(email: string) {
+    const user = await this.usersRepository.findOne({ email });
 
-        // se existir so retornar o user.
-        return user;
-    }
-
+    return user;
+  }
 }
 
 export { UserService };
